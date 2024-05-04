@@ -288,16 +288,6 @@ class FlowChart extends HTMLElement {
 
         const edgesPositions = (prev: EdgesPositions)=> {
             const next = { ...prev };
-            this.nodesData[values.nodeIndex].edgesOut.map((edgeId: string) => {
-                next[edgeId] = {
-                    x0: this.nodesPositions[values.nodeIndex].x + values.outputs[this.edgesNodes[edgeId].outputIndex].offset.x,
-                    y0: this.nodesPositions[values.nodeIndex].y + values.outputs[this.edgesNodes[edgeId].outputIndex].offset.y,
-                    x1: prev[edgeId]?.x1 || 0,
-                    y1: prev[edgeId]?.y1 || 0,
-                };
-                
-            });
-
             this.nodesData[values.nodeIndex].edgesIn.map((edgeId: string) => {
                 next[edgeId] = {
                     x0: prev[edgeId]?.x0 || 0,
@@ -307,7 +297,15 @@ class FlowChart extends HTMLElement {
                 };
                 
             });
-
+            this.nodesData[values.nodeIndex].edgesOut.map((edgeId: string) => {
+                next[edgeId] = {
+                    x0: this.nodesPositions[values.nodeIndex].x + values.outputs[this.edgesNodes[edgeId].outputIndex].offset.x,
+                    y0: this.nodesPositions[values.nodeIndex].y + values.outputs[this.edgesNodes[edgeId].outputIndex].offset.y,
+                    x1: prev[edgeId]?.x1 || 0,
+                    y1: prev[edgeId]?.y1 || 0,
+                };
+                
+            });
             return next;
         }
         this.setEdgesPositions(edgesPositions(this.edgesPositions));
