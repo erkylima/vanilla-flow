@@ -49,64 +49,64 @@ class NodesBoard extends HTMLElement{
     }
 
     render(){
-        const main = document.createElement("div");
-        main.className = "nodeMain"
-        main.onmousemove = this.handleOnMouseMoveScene
-        main.onmouseup = this.handleOnMouseUpScene        
-        this.scene = main;
-        main.setAttribute("ref", "nodeMain")
-        this.props.nodes.forEach((node, index) => {
-            var props:NodeComponentProps = {
-                x:this.props.nodesPositions[index].x,
-                y:this.props.nodesPositions[index].y,
-                selected:this.selected === index,
-                label:node.data.label,
-                content:node.data.content,
-                inputs:node.inputs,
-                outputs:node.outputs,
-                onMouseDown: (event: MouseEvent) => {
-                    this.handleOnMouseDownNode(index, event.x, event.y)
-                    alert("s");
-                    
-                },
-                onNodeMount: (inputs: { offset: { x: number; y: number } }[], outputs: { offset: { x: number; y: number } }[]) =>
-                    this.props.onNodeMount({
-                        nodeIndex: index,
-                        inputs: inputs.map((values: { offset: { x: number; y: number } }) => {
-                            return {
-                                offset: {
-                                    x: values.offset.x - this.scene.getBoundingClientRect().x - this.props.nodesPositions[index].x + 6,
-                                    y: values.offset.y - this.scene.getBoundingClientRect().y - this.props.nodesPositions[index].y + 6,
-                                },
-                            };
-                        }),
-                        outputs: outputs.map((values: { offset: { x: number; y: number } }) => {
-                            return {
-                                offset: {
-                                    x: values.offset.x - this.scene.getBoundingClientRect().x - this.props.nodesPositions[index].x + 6,
-                                    y: values.offset.y - this.scene.getBoundingClientRect().y - this.props.nodesPositions[index].y + 6,
-                                },
-                            };
-                        }),
-                }),
-                onMouseDownOutput: (outputIndex: number) => this.props.onOutputMouseDown(index, outputIndex),
-                onMouseUpInput: (inputIndex: number) => {
-                    this.props.onInputMouseUp(index, inputIndex);
-                },                
-                onClickOutside: () => {
-                    if (index === this.selected) this.setSelected(null);
-                },
-                onClickDelete: () => {
-                    this.setSelected(null);
-                    this.props.onNodeDelete(node.id);
-                },
-            }
-            const nodeComp = new NodeComponent(props)
-            main.innerHTML = main.innerHTML + nodeComp.innerHTML
+        if (this.props){
+            const main = document.createElement("div");
+            main.className = "nodeMain"
+            main.onmousemove = this.handleOnMouseMoveScene
+            main.onmouseup = this.handleOnMouseUpScene        
+            this.scene = main;
+            main.setAttribute("ref", "nodeMain")
+            this.props.nodes.forEach((node, index) => {
+                var props:NodeComponentProps = {
+                    x:this.props.nodesPositions[index].x,
+                    y:this.props.nodesPositions[index].y,
+                    selected:this.selected === index,
+                    label:node.data.label,
+                    content:node.data.content,
+                    inputs:node.inputs,
+                    outputs:node.outputs,
+                    onMouseDown: (event: MouseEvent) => {
+                        
+                        this.handleOnMouseDownNode(index, event.x, event.y)                    
+                    },
+                    onNodeMount: (inputs: { offset: { x: number; y: number } }[], outputs: { offset: { x: number; y: number } }[]) =>
+                        this.props.onNodeMount({
+                            
+                            nodeIndex: index,
+                            inputs: inputs.map((values: { offset: { x: number; y: number } }) => {
+                                return {
+                                    offset: {
+                                        x: values.offset.x - main.getBoundingClientRect().x - this.props.nodesPositions[index].x + 6,
+                                        y: values.offset.y - main.getBoundingClientRect().y - this.props.nodesPositions[index].y + 6,
+                                    },
+                                };
+                            }),
+                            outputs: outputs.map((values: { offset: { x: number; y: number } }) => {
+                                return {
+                                    offset: {
+                                        x: values.offset.x - this.scene.getBoundingClientRect().x - this.props.nodesPositions[index].x + 6,
+                                        y: values.offset.y - this.scene.getBoundingClientRect().y - this.props.nodesPositions[index].y + 6,
+                                    },
+                                };
+                            }),
+                    }),
+                    onMouseDownOutput: (outputIndex: number) => this.props.onOutputMouseDown(index, outputIndex),
+                    onMouseUpInput: (inputIndex: number) => this.props.onInputMouseUp(index, inputIndex),
+                    onClickOutside: () => {
+                        if (index === this.selected) this.setSelected(null);
+                    },
+                    onClickDelete: () => {
+                        this.setSelected(null);
+                        this.props.onNodeDelete(node.id);
+                    },
+                }
+                const nodeComp = new NodeComponent(props)
+                main.innerHTML = main.innerHTML + nodeComp.innerHTML
 
-        })
+            })
 
-        this.innerHTML = main.outerHTML;
+            this.innerHTML = main.outerHTML;
+        }
     }
            
 

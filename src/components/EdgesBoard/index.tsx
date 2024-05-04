@@ -8,7 +8,7 @@ export interface Vector {
 }
 
 export interface EdgesPositions {
-    [id: string]: Vector;
+    [id: string]: Vector;    
 }
 
 export interface EdgesActive {
@@ -17,8 +17,8 @@ export interface EdgesActive {
 
 interface EdgeBoardProps {
     newEdge: { position: Vector; sourceNode: number; sourceOutput: number } | null;
-    edgesActives: EdgesActive[];
-    edgesPositions: EdgesPositions[];
+    edgesActives: EdgesActive;
+    edgesPositions: EdgesPositions;
     onDeleteEdge: (edgeId: string) => void;
 }
 export class EdgesBoard extends HTMLElement {
@@ -83,7 +83,7 @@ export class EdgesBoard extends HTMLElement {
             
         });
         if (this.props.newEdge !== null) {
-
+            
             var props: EdgeComponentProps = {
                 selected: false,                            
                 position: {

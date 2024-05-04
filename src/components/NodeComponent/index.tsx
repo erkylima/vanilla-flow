@@ -52,8 +52,7 @@ class NodeComponent extends HTMLElement {
         const node = document.createElement('div');
         node.classList.add("node");
         node.style.transform = `translate(${this.props.x}px, ${this.props.y}px)`;
-        node.addEventListener("onmousedown", function(e) {
-            alert(e)
+        this.addEventListener("click", function(e) {
         })
         
         const action = document.createElement('div');
@@ -123,8 +122,8 @@ class NodeComponent extends HTMLElement {
         `
         var outputPoints = ``
         if (this.props.outputs > 0){
-            [...Array(this.props.outputs).keys()].forEach((item: number, index: number) => {
-                alert("s")
+            [...Array(this.props.outputs).keys()].forEach((item: number, index: number) => {                
+                
                 outputPoints += `<div
                     ref=${(ref: any) => {
                         this.outputRefs[index] = ref;
@@ -175,6 +174,7 @@ class NodeComponent extends HTMLElement {
         }        
     `
         this.innerHTML= node.outerHTML
+
     }            
     
 };
