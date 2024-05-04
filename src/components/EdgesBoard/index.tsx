@@ -1,87 +1,119 @@
-import { Accessor, Component, createEffect, createSignal, For } from "solid-js";
-import EdgeComponent from "../EdgeComponent";
-import styles from "./styles.module.css";
+import EdgeComponent, { EdgeComponentProps } from "../EdgeComponent";
 
-interface Vector {
+export interface Vector {
     x0: number;
     y0: number;
     x1: number;
     y1: number;
 }
 
-interface EdgesPositions {
+export interface EdgesPositions {
     [id: string]: Vector;
 }
 
-interface EdgesActive {
+export interface EdgesActive {
     [id: string]: boolean;
 }
 
-interface Props {
+interface EdgeBoardProps {
     newEdge: { position: Vector; sourceNode: number; sourceOutput: number } | null;
-    edgesActives: EdgesActive;
-    edgesPositions: EdgesPositions;
+    edgesActives: EdgesActive[];
+    edgesPositions: EdgesPositions[];
     onDeleteEdge: (edgeId: string) => void;
 }
+export class EdgesBoard extends HTMLElement {
+    ids: string[] = []
+    setIds(ids: string[]){
+        this.ids = ids;
+    }
+    selected: string = "null";
+    setSelected(id: string){
+        this.selected = id;
+    }
+    props: EdgeBoardProps
+    constructor(props:EdgeBoardProps){
+        super();
+        this.props = props;
+        if(this.props){
+            this.connectedCallback()
+            this.render();
+        }
+    }
 
-const EdgesBoard: Component<Props> = (props: Props) => {
-    const [ids, setIds] = createSignal<string[]>([]);
-    const [selected, setSelected] = createSignal<string>("null");
+    connectedCallback() {
+        
+        const newIds = Object.keys(this.props.edgesActives).filter((elem: string) => this.props.edgesActives[elem]);
 
-    createEffect(() => {
-        const newIds = Object.keys(props.edgesActives).filter((elem: string) => props.edgesActives[elem]);
-        setIds(newIds);
-    });
+        this.setIds(newIds);
 
-    createEffect(() => {
-        if (selected() !== "null" && props.newEdge !== null) setSelected("null");
-    });
+        if (this.selected !== "null" && this.props.newEdge !== null){ 
 
-    return (
-        <svg class={styles.main}>
-            {props.newEdge !== null && (
-                <EdgeComponent
-                    selected={false}
-                    isNew={true}
-                    position={{
-                        x0: props.newEdge.position.x0,
-                        y0: props.newEdge.position.y0,
-                        x1: props.newEdge.position.x1,
-                        y1: props.newEdge.position.y1,
-                    }}
-                    onClickDelete={() => {}}
-                    onClickEdge={() => {}}
-                    onClickOutside={() => {}}
-                />
-            )}
-            <For each={ids()}>
-                {(edgeId: string) => {
-                    if (props.edgesActives[edgeId])
-                        return (
-                            <EdgeComponent
-                                selected={edgeId === selected()}
-                                isNew={false}
-                                position={{
-                                    x0: props.edgesPositions[edgeId]?.x0 || 0,
-                                    y0: props.edgesPositions[edgeId]?.y0 || 0,
-                                    x1: props.edgesPositions[edgeId]?.x1 || 0,
-                                    y1: props.edgesPositions[edgeId]?.y1 || 0,
-                                }}
-                                onClickDelete={() => {
-                                    props.onDeleteEdge(edgeId);
-                                }}
-                                onClickEdge={() => {
-                                    setSelected(edgeId);
-                                }}
-                                onClickOutside={() => {
-                                    if (selected() === edgeId) setSelected("null");
-                                }}
-                            />
-                        );
-                }}
-            </For>
+            this.setSelected("null");
+
+        }
+    }
+
+    render() {
+        var edgePoints = ``
+        this.ids.forEach((edgeId: string) => {
+            if (this.props.edgesActives[edgeId])
+                var props: EdgeComponentProps = {
+                    selected: this.selected === edgeId,                            
+                    position: {
+                        x0: this.props.edgesPositions[edgeId]?.x0 || 0,
+                        y0: this.props.edgesPositions[edgeId]?.y0 || 0,
+                        x1: this.props.edgesPositions[edgeId]?.x1 || 0,
+                        y1: this.props.edgesPositions[edgeId]?.y1 || 0,
+                    },
+                    isNew: false,
+                    onClickDelete: () => {
+                        this.props.onDeleteEdge(edgeId);
+                    },
+                    onClickOutside: () => {
+
+                    },
+                    onClickEdge: () => {
+                        this.setSelected(edgeId);
+                        this.render();
+                    }
+
+                };
+                const edge = new EdgeComponent(props)
+                edgePoints += edge.innerHTML
+            
+        });
+        if (this.props.newEdge !== null) {
+
+            var props: EdgeComponentProps = {
+                selected: false,                            
+                position: {
+                    x0: this.props.newEdge.position.x0,
+                    y0: this.props.newEdge.position.y0,
+                    x1: this.props.newEdge.position.x1,
+                    y1: this.props.newEdge.position.y1,
+                },
+                isNew: true,
+                onClickDelete: () => {
+                },
+                onClickOutside: () => {
+                },
+                onClickEdge: () => {
+                }
+
+            };
+            const edge = new EdgeComponent(props)
+            edgePoints += edge.innerHTML
+        }
+
+        this.innerHTML = `
+        <svg class="edgeMain">            
+            ${edgePoints}            
         </svg>
-    );
-};
+        `
+        
+    }
+}    
+
+customElements.define("edges-board", EdgesBoard);
 
 export default EdgesBoard;

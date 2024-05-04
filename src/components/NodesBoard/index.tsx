@@ -1,6 +1,5 @@
 import NodeComponent, { NodeComponentProps } from "../NodeComponent";
 import styles from "./styles.module.css";
-import CreateState  from "../../util/CreateState";
 
 interface NodeBoardProps {
     id: string;
@@ -29,54 +28,102 @@ interface Props {
 
 class NodesBoard extends HTMLElement{
     props: Props
-    grabbing: Function
-    setGrabbing: Function
-    selected: Function
-    setSelected:Function
-    scene: any
+    grabbing: number | null    
+    setGrabbing(value: number|null){
+        this.grabbing = value;        
+    }    
+    selected: number | null
+    setSelected(value: number|null){
+        this.selected = value;
+    }
+    scene: HTMLElement
     constructor(props: Props) {
         super();
-
-        [this.grabbing, this.setGrabbing] = CreateState<number|null>(null);
-        [this.selected, this.setSelected] = CreateState<number | null>(null);
         this.props = props;
-        this.render();
+        this.render()
     }
+
+    connectedCallback() {
+        this.grabbing = null;
+        this.selected = null;
+    }
+
     render(){
-        
         const main = document.createElement("div");
-        main.className = "main"
-        main.setAttribute("ref", this.scene)
+        main.className = "nodeMain"
         main.onmousemove = this.handleOnMouseMoveScene
-        main.onmouseup = this.handleOnMouseUpScene
-        
+        main.onmouseup = this.handleOnMouseUpScene        
+        this.scene = main;
+        main.setAttribute("ref", "nodeMain")
         this.props.nodes.forEach((node, index) => {
             var props:NodeComponentProps = {
                 x:this.props.nodesPositions[index].x,
                 y:this.props.nodesPositions[index].y,
-                selected:this.selected() === index,
+                selected:this.selected === index,
                 label:node.data.label,
                 content:node.data.content,
                 inputs:node.inputs,
-                outputs:node.outputs
+                outputs:node.outputs,
+                onMouseDown: (event: MouseEvent) => {
+                    this.handleOnMouseDownNode(index, event.x, event.y)
+                    alert("s");
+                    
+                },
+                onNodeMount: (inputs: { offset: { x: number; y: number } }[], outputs: { offset: { x: number; y: number } }[]) =>
+                    this.props.onNodeMount({
+                        nodeIndex: index,
+                        inputs: inputs.map((values: { offset: { x: number; y: number } }) => {
+                            return {
+                                offset: {
+                                    x: values.offset.x - this.scene.getBoundingClientRect().x - this.props.nodesPositions[index].x + 6,
+                                    y: values.offset.y - this.scene.getBoundingClientRect().y - this.props.nodesPositions[index].y + 6,
+                                },
+                            };
+                        }),
+                        outputs: outputs.map((values: { offset: { x: number; y: number } }) => {
+                            return {
+                                offset: {
+                                    x: values.offset.x - this.scene.getBoundingClientRect().x - this.props.nodesPositions[index].x + 6,
+                                    y: values.offset.y - this.scene.getBoundingClientRect().y - this.props.nodesPositions[index].y + 6,
+                                },
+                            };
+                        }),
+                }),
+                onMouseDownOutput: (outputIndex: number) => this.props.onOutputMouseDown(index, outputIndex),
+                onMouseUpInput: (inputIndex: number) => {
+                    this.props.onInputMouseUp(index, inputIndex);
+                },                
+                onClickOutside: () => {
+                    if (index === this.selected) this.setSelected(null);
+                },
+                onClickDelete: () => {
+                    this.setSelected(null);
+                    this.props.onNodeDelete(node.id);
+                },
             }
             const nodeComp = new NodeComponent(props)
+            main.innerHTML = main.innerHTML + nodeComp.innerHTML
+
         })
+
+        this.innerHTML = main.outerHTML;
     }
            
 
     handleOnMouseMoveScene(event: any) {
         const x = event.x - this.scene.getBoundingClientRect().x;
         const y = event.y - this.scene.getBoundingClientRect().y;
-        if (this.grabbing() !== null) {
-            this.props.onNodeMove(this.grabbing() || 0, x, y);
+        if (this.grabbing !== null) {
+            this.props.onNodeMove(this.grabbing || 0, x, y);
         }
         this.props.onMouseMove(x, y);
+        this.render();
     }
 
     handleOnMouseUpScene(event: any) {
         this.setGrabbing(null);
         this.props.onMouseUp();
+        this.render();
     }
 
     handleOnMouseDownNode(index: number, x: number, y: number) {
@@ -85,7 +132,9 @@ class NodesBoard extends HTMLElement{
         this.props.onNodePress(
             x - this.scene.getBoundingClientRect().x - this.props.nodesPositions[index].x,
             y - this.scene.getBoundingClientRect().y - this.props.nodesPositions[index].y
-        );
+        );        
+
+        this.render();
     }
 
     
@@ -93,4 +142,5 @@ class NodesBoard extends HTMLElement{
     
 }
 
+customElements.define("nodes-board", NodesBoard)
 export default NodesBoard;

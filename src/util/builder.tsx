@@ -25,3 +25,12 @@ export function ClickOutside(element: any, callback: Function) {
         document.removeEventListener('click', handleClick);
     };
 }
+
+export function produce<T>(fn: (state: T) => void): (state: T) => T {
+    
+    return (state: T) => {
+        const newState = { ...state }; // Clona o estado para garantir imutabilidade        
+        fn(newState); // Aplica as atualizações de estado
+        return newState; // Retorna o novo estado
+    };
+}
